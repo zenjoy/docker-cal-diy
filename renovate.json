@@ -1,0 +1,15 @@
+{
+  "$schema": "https://docs.renovatebot.com/renovate-schema.json",
+  "extends": ["config:recommended"],
+  "customManagers": [
+    {
+      "customType": "regex",
+      "managerFilePatterns": ["/^versions\\.env$/"],
+      "matchStrings": ["CAL_DIY_REF=(?<currentDigest>[a-f0-9]{40})"],
+      "currentValueTemplate": "main",
+      "depNameTemplate": "calcom/cal.diy",
+      "packageNameTemplate": "https://github.com/calcom/cal.diy",
+      "datasourceTemplate": "git-refs"
+    }
+  ]
+}
