@@ -10,6 +10,21 @@
       "depNameTemplate": "calcom/cal.diy",
       "packageNameTemplate": "https://github.com/calcom/cal.diy",
       "datasourceTemplate": "git-refs"
+    },
+    {
+      "customType": "regex",
+      "managerFilePatterns": ["/^versions\\.env$/"],
+      "matchStrings": ["NODE_IMAGE=(?<depName>node):(?<currentValue>[0-9.]+-bookworm)"],
+      "datasourceTemplate": "docker",
+      "versioningTemplate": "docker"
+    }
+  ],
+  "packageRules": [
+    {
+      "description": "Stay on the Node 22 LTS line; a major bump needs a manual test",
+      "matchDatasources": ["docker"],
+      "matchPackageNames": ["node"],
+      "allowedVersions": "<23"
     }
   ]
 }

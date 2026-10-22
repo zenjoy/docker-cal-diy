@@ -55,6 +55,7 @@ jobs:
           echo "ref=$REF" | tee -a "$GITHUB_OUTPUT"
           echo "short=${REF:0:7}" | tee -a "$GITHUB_OUTPUT"
           echo "date=$(date -u +%Y%m%d)" | tee -a "$GITHUB_OUTPUT"
+          echo "node_image=$NODE_IMAGE" | tee -a "$GITHUB_OUTPUT"
 
       - name: Checkout calcom/cal.diy
         uses: actions/checkout@v7
@@ -63,6 +64,22 @@ jobs:
           ref: ${{ steps.upstream.outputs.ref }}
           path: upstream
           persist-credentials: false
+
+      # Upstream pins node:20 (EOL) in all three stages. Swap in NODE_IMAGE and
+      # fail loudly if upstream changes its FROM lines, so a stale Node never slips in.
+      - name: Use supported Node.js image
+        env:
+          NODE_IMAGE: ${{ steps.upstream.outputs.node_image }}
+        run: |
+          set -euo pipefail
+          f=upstream/Dockerfile
+          sed -i -E 's#^(FROM( --platform=[^ ]+)? )node:20( |$)#\1'"$NODE_IMAGE"'\3#' "$f"
+          grep -n '^FROM' "$f"
+          if grep -E '^FROM' "$f" | grep -v -F "$NODE_IMAGE"; then
+            echo "::error::Unexpected FROM line(s) in upstream Dockerfile"
+            exit 1
+          fi
+          test "$(grep -c '^FROM' "$f")" -eq 3 || { echo "::error::Expected 3 FROM stages"; exit 1; }
 
       - name: Free disk space
         run: |
@@ -89,6 +106,7 @@ jobs:
             org.opencontainers.image.title=${{ steps.title.outputs.title }}
             org.opencontainers.image.source=https://github.com/calcom/cal.diy
             org.opencontainers.image.revision=${{ steps.upstream.outputs.ref }}
+            org.opencontainers.image.base.name=docker.io/library/${{ steps.upstream.outputs.node_image }}
 
       - name: Install Cosign
         uses: sigstore/cosign-installer@v4.1.2
