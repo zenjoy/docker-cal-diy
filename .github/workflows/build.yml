@@ -65,15 +65,16 @@ jobs:
           path: upstream
           persist-credentials: false
 
-      # Upstream pins node:20 (EOL) in all three stages. Swap in NODE_IMAGE and
-      # fail loudly if upstream changes its FROM lines, so a stale Node never slips in.
+      # Upstream uses a floating node:<major> tag (node:20 until 2026-10, node:22 since
+      # cal.diy #30416) in all three stages. Swap in the pinned NODE_IMAGE and fail
+      # loudly if upstream changes its FROM lines, so an unpinned Node never slips in.
       - name: Use supported Node.js image
         env:
           NODE_IMAGE: ${{ steps.upstream.outputs.node_image }}
         run: |
           set -euo pipefail
           f=upstream/Dockerfile
-          sed -i -E 's#^(FROM( --platform=[^ ]+)? )node:20( |$)#\1'"$NODE_IMAGE"'\3#' "$f"
+          sed -i -E 's#^(FROM( --platform=[^ ]+)? )node:[0-9]+( |$)#\1'"$NODE_IMAGE"'\3#' "$f"
           grep -n '^FROM' "$f"
           if grep -E '^FROM' "$f" | grep -v -F "$NODE_IMAGE"; then
             echo "::error::Unexpected FROM line(s) in upstream Dockerfile"
