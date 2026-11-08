@@ -59,7 +59,7 @@ Upstream's entrypoint is `scripts/start.sh`, which on every boot:
 
 Because of step 1, `NEXT_PUBLIC_WEBAPP_URL` is **not** a build arg here — set it at runtime.
 
-Other facts from upstream's Dockerfile: listens on port `3000`, runs as `root` (`node:20` base, no
+Other facts from upstream's Dockerfile: listens on port `3000`, runs as `root` (`node:22` base, no
 `USER`), and has a `HEALTHCHECK` hitting `http://localhost:3000`. Required runtime env includes
 `DATABASE_URL`, `DATABASE_DIRECT_URL`, `NEXTAUTH_SECRET`, `NEXTAUTH_URL`,
 `CALENDSO_ENCRYPTION_KEY` (never rotate this one) and `NEXT_PUBLIC_WEBAPP_URL`.
